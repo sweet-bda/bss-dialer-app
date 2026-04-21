@@ -197,9 +197,8 @@ function connect(serverUrl, secret) {
 async function fetchSSE(serverUrl, secret) {
   setStatus(false);
   try {
-    const res = await fetch(serverUrl + '/events', {
-      headers: { 'x-bss-secret': secret },
-      signal: AbortSignal.timeout(0) // no timeout
+    const res = await fetch(serverUrl + '/events?secret=' + encodeURIComponent(secret), {
+      headers: { 'x-bss-secret': secret }
     });
     if (!res.ok) { showToast('Auth failed — check secret key'); return; }
     setStatus(true);
