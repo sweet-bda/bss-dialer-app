@@ -4,351 +4,123 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
 <meta name="theme-color" content="#0F6E56"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <title>BSS Dialer</title>
 <link rel="manifest" href="manifest.json"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --green:#1D9E75;--green-dark:#0F6E56;--green-darker:#085041;
-  --green-light:#E1F5EE;--green-mid:#9FE1CB;
-  --red:#E24B4A;--amber:#EF9F27;
-  --bg:#F5F5F3;--card:#fff;--text:#2C2C2A;--muted:#888780;--border:#E0DED8;
-}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
-
-/* ── Header ── */
-.header{background:var(--green-dark);color:#fff;padding:16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.header-left{display:flex;align-items:center;gap:10px}
-.header h1{font-size:17px;font-weight:600}
-.header p{font-size:11px;opacity:.7;margin-top:1px}
-.status-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 10px;font-size:12px}
-.dot{width:7px;height:7px;border-radius:50%;background:#9FE1CB;transition:background .3s}
-.dot.live{background:#9FE1CB;box-shadow:0 0 6px #9FE1CB}
+body{font-family:system-ui,sans-serif;background:#0F6E56;color:#fff;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px}
+.logo{font-size:48px}
+h1{font-size:20px;font-weight:600}
+p{font-size:13px;opacity:.7;text-align:center}
+.status-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:20px;padding:8px 16px;font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:#9FE1CB;flex-shrink:0}
+.dot.live{box-shadow:0 0 8px #9FE1CB;animation:pulse 1.5s infinite}
 .dot.dead{background:#E24B4A}
-
-/* ── Settings panel ── */
-.settings-panel{background:var(--green-darker);padding:0;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
-.settings-panel.open{max-height:300px;padding:12px 16px}
-.settings-panel label{color:#9FE1CB;font-size:11px;display:block;margin-bottom:4px;margin-top:10px}
-.settings-panel label:first-child{margin-top:0}
-.settings-panel input{width:100%;padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:14px;outline:none}
-.settings-panel input::placeholder{color:rgba(255,255,255,.4)}
-.settings-panel input:focus{border-color:var(--green-mid)}
-.save-btn{margin-top:10px;width:100%;padding:9px;background:var(--green);border:none;border-radius:6px;color:#fff;font-size:14px;font-weight:500;cursor:pointer}
-.save-btn:active{background:var(--green-dark)}
-.gear-btn{background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;padding:4px;line-height:1}
-
-/* ── Incoming call overlay ── */
-#callOverlay{position:fixed;inset:0;background:var(--green-darker);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
-#callOverlay.active{transform:translateY(0)}
-.call-label{color:rgba(255,255,255,.6);font-size:14px;letter-spacing:.5px;text-transform:uppercase}
-.call-number{color:#fff;font-size:36px;font-weight:600;letter-spacing:2px}
-.call-source{color:var(--green-mid);font-size:13px}
-.call-ripple{width:80px;height:80px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:32px;animation:ripple 1.2s infinite}
-@keyframes ripple{0%,100%{box-shadow:0 0 0 0 rgba(29,158,117,.5)}50%{box-shadow:0 0 0 20px rgba(29,158,117,0)}}
-.dismiss-btn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:20px;padding:10px 28px;font-size:14px;cursor:pointer;margin-top:8px}
-.dismiss-btn:active{background:rgba(255,255,255,.25)}
-
-
-
-/* ── Main content ── */
-.content{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px}
-.section-title{font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
-
-/* ── Empty state ── */
-.empty{text-align:center;padding:40px 20px;color:var(--muted)}
-.empty-icon{font-size:40px;margin-bottom:12px}
-.empty h2{font-size:16px;font-weight:500;margin-bottom:6px;color:var(--text)}
-.empty p{font-size:13px;line-height:1.5}
-
-/* ── Number cards ── */
-.number-card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s,transform .1s;position:relative}
-.number-card:active{background:#F0F0EE;transform:scale(0.98)}
-.number-card.new-flash{animation:flash .6s}
-@keyframes flash{0%{background:var(--green-light)}100%{background:var(--card)}}
-.card-icon{width:42px;height:42px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.card-body{flex:1;min-width:0}
-.card-number{font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-meta{font-size:12px;color:var(--muted);margin-top:2px}
-.card-badge{font-size:10px;font-weight:500;background:var(--green-light);color:var(--green-dark);border-radius:20px;padding:2px 8px}
-.card-badge.new-badge{background:#FFF3CD;color:#856404}
-
-/* ── Toggle ── */
-.autodial-row{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
-.toggle-info h3{font-size:14px;font-weight:500}
-.toggle-info p{font-size:12px;color:var(--muted);margin-top:2px}
-.tog{position:relative;width:44px;height:26px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0}
-.tog-slider{position:absolute;inset:0;background:#D3D1C7;border-radius:26px;cursor:pointer;transition:background .2s}
-.tog-slider::before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
-.tog input:checked + .tog-slider{background:var(--green)}
-.tog input:checked + .tog-slider::before{transform:translateX(18px)}
-
-/* ── Toast ── */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#2C2C2A;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:200}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.recent{width:100%;max-width:320px;background:rgba(255,255,255,.1);border-radius:12px;padding:14px}
+.recent h3{font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.number-item{font-size:16px;font-weight:500;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.1);cursor:pointer}
+.number-item:last-child{border-bottom:none}
+.number-item span{font-size:11px;opacity:.5;display:block;margin-top:2px}
+.empty{font-size:13px;opacity:.4;text-align:center;padding:10px 0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#085041;color:#E1F5EE;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all .2s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="header">
-  <div class="header-left">
-    <div>
-      <h1>BSS Dialer</h1>
-      <p>Bombay Sweet Shop</p>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <div class="status-pill"><div class="dot dead" id="statusDot"></div><span id="statusLabel">Offline</span></div>
-    <button class="gear-btn" onclick="toggleSettings()" title="Settings">⚙️</button>
-  </div>
+<div class="logo">📞</div>
+<h1>BSS Dialer</h1>
+<p>Bombay Sweet Shop</p>
+
+<div class="status-pill">
+  <div class="dot dead" id="dot"></div>
+  <span id="statusText">Connecting...</span>
 </div>
 
-<!-- Settings -->
-<div class="settings-panel" id="settingsPanel">
-  <label>Relay Server URL</label>
-  <input type="url" id="serverUrl" placeholder="https://your-relay-server.com" />
-  <label>Secret Key</label>
-  <input type="password" id="secretKey" placeholder="bss-dialer-secret-change-me" />
-  <button class="save-btn" onclick="saveSettings()">Save & Connect</button>
-</div>
-
-<!-- Incoming Call Overlay -->
-<div id="callOverlay">
-  <div class="call-ripple">📞</div>
-  <div class="call-label">Incoming from Bitespeed</div>
-  <div class="call-number" id="overlayNumber"></div>
-  <div class="call-source" id="overlaySource"></div>
-  <button class="dismiss-btn" onclick="dismissCall()">Dismiss</button>
-</div>
-
-<!-- Main -->
-<div class="content">
-  <div class="autodial-row">
-    <div class="toggle-info">
-      <h3>Auto-dial on receive</h3>
-      <p>Dials immediately when a number arrives</p>
-    </div>
-    <label class="tog">
-      <input type="checkbox" id="autoDialToggle" checked/>
-      <span class="tog-slider"></span>
-    </label>
-  </div>
-
-  <div>
-    <div class="section-title">Recent numbers</div>
-    <div id="numberList"></div>
-  </div>
+<div class="recent" id="recentBox" style="display:none">
+  <h3>Recent</h3>
+  <div id="recentList"><div class="empty">No calls yet</div></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script>
-// ─── State ────────────────────────────────────────────────────────────────
-let evtSource = null;
-let pendingCall = null;
-const numbers = [];
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
 
-// ─── Persist settings ─────────────────────────────────────────────────────
-function loadSettings() {
-  return {
-    serverUrl: localStorage.getItem('bss_server') || '',
-    secret: localStorage.getItem('bss_secret') || 'bss-dialer-secret-change-me'
-  };
-}
-function saveSettings() {
-  const url = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
-  const secret = document.getElementById('secretKey').value.trim();
-  if (!url) { showToast('Enter the server URL first'); return; }
-  localStorage.setItem('bss_server', url);
-  localStorage.setItem('bss_secret', secret);
-  toggleSettings();
-  connect(url, secret);
-}
-function populateSettingsUI() {
-  const s = loadSettings();
-  document.getElementById('serverUrl').value = s.serverUrl;
-  document.getElementById('secretKey').value = s.secret;
-}
-function toggleSettings() {
-  const p = document.getElementById('settingsPanel');
-  p.classList.toggle('open');
+const firebaseConfig = {
+  apiKey: "AIzaSyAH0_uNf8W6qybKVDZ99o4ANlmu-fphSd4",
+  authDomain: "bss-dialer.firebaseapp.com",
+  databaseURL: "https://bss-dialer-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bss-dialer",
+  storageBucket: "bss-dialer.firebasestorage.app",
+  messagingSenderId: "521966372882",
+  appId: "1:521966372882:web:5a05a6071d21dd91de30cb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let lastTs = 0;
+const recent = [];
+
+function dial(number) {
+  window.location.href = 'tel:' + number;
 }
 
-// ─── SSE Connection ───────────────────────────────────────────────────────
-function connect(serverUrl, secret) {
-  if (!serverUrl) return;
-  if (evtSource) { evtSource.close(); evtSource = null; }
-  setStatus(false);
-
-  const url = serverUrl + '/events';
-  evtSource = new EventSource(url, {
-    // Custom headers aren't supported by EventSource — we use query param fallback
-  });
-
-  // EventSource doesn't support custom headers; use fetch-based SSE instead
-  evtSource.close();
-  fetchSSE(serverUrl, secret);
-}
-
-async function fetchSSE(serverUrl, secret) {
-  setStatus(false);
-  try {
-    const res = await fetch(serverUrl + '/events?secret=' + encodeURIComponent(secret), {
-      headers: { 'x-bss-secret': secret }
-    });
-    if (!res.ok) { showToast('Auth failed — check secret key'); return; }
-    setStatus(true);
-    showToast('Connected to relay server');
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = '';
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const parts = buf.split('\n\n');
-      buf = parts.pop();
-      for (const block of parts) {
-        parseSSEBlock(block);
-      }
-    }
-  } catch (e) {
-    setStatus(false);
-    showToast('Connection lost — retrying in 5s…');
-    setTimeout(() => {
-      const s = loadSettings();
-      if (s.serverUrl) fetchSSE(s.serverUrl, s.secret);
-    }, 5000);
-  }
-}
-
-function parseSSEBlock(block) {
-  let event = 'message', data = '';
-  for (const line of block.split('\n')) {
-    if (line.startsWith('event:')) event = line.slice(6).trim();
-    if (line.startsWith('data:')) data = line.slice(5).trim();
-  }
-  if (!data || data === '') return;
-  try {
-    const payload = JSON.parse(data);
-    if (event === 'dial') onNumberReceived(payload, true);
-    if (event === 'recent') onNumberReceived(payload, false);
-  } catch(e) {}
-}
-
-// ─── Number received ──────────────────────────────────────────────────────
-function onNumberReceived(payload, isNew) {
-  // Deduplicate recent
-  const existing = numbers.findIndex(n => n.number === payload.number);
-  if (existing !== -1) numbers.splice(existing, 1);
-  numbers.unshift(payload);
-  if (numbers.length > 20) numbers.pop();
-  renderList();
-
-  if (isNew) {
-    const autoDial = document.getElementById('autoDialToggle').checked;
-    if (autoDial) {
-      showCallOverlay(payload);
-    } else {
-      showToast('New number: ' + payload.number);
-    }
-  }
-}
-
-// ─── Call overlay with countdown ─────────────────────────────────────────
-function showCallOverlay(payload) {
-  pendingCall = payload;
-  document.getElementById('overlayNumber').textContent = payload.number;
-  document.getElementById('overlaySource').textContent = payload.label || 'from Bitespeed';
-  document.getElementById('callOverlay').classList.add('active');
-  dialNumber(payload.number);
-}
-
-function dismissCall() {
-  document.getElementById('callOverlay').classList.remove('active');
-  showToast('Call dismissed');
-}
-
-// ─── Dial ─────────────────────────────────────────────────────────────────
-function dialNumber(number) {
-  const digits = number.replace(/\D/g, '');
-  let href = 'tel:+';
-  if (digits.startsWith('0') && digits.length >= 10) href += '91' + digits.slice(1);
-  else if (digits.length === 10) href += '91' + digits;
-  else href += digits;
-  window.location.href = href;
-}
-
-// ─── Render list ──────────────────────────────────────────────────────────
-function renderList() {
-  const el = document.getElementById('numberList');
-  if (!numbers.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><h2>No numbers yet</h2><p>When the Chrome extension detects a phone number on Bitespeed and you click it, it'll appear here instantly.</p></div>`;
-    return;
-  }
-  el.innerHTML = numbers.map((n, i) => {
-    const age = Date.now() - n.ts;
-    const isNew = age < 30000;
-    const timeStr = n.ts ? timeAgo(n.ts) : '';
-    return `<div class="number-card${isNew ? ' new-flash' : ''}" onclick="dialNumber('${n.number}')" style="margin-bottom:8px">
-      <div class="card-icon">📞</div>
-      <div class="card-body">
-        <div class="card-number">${n.number}</div>
-        <div class="card-meta">${n.label || 'Bitespeed'} · ${timeStr}</div>
-      </div>
-      ${isNew ? '<span class="card-badge new-badge">New</span>' : ''}
-    </div>`;
-  }).join('');
-}
-
-function timeAgo(ts) {
-  const s = Math.floor((Date.now() - ts) / 1000);
-  if (s < 10) return 'just now';
-  if (s < 60) return s + 's ago';
-  if (s < 3600) return Math.floor(s/60) + 'm ago';
-  return Math.floor(s/3600) + 'h ago';
-}
-
-// ─── Status ───────────────────────────────────────────────────────────────
-function setStatus(connected) {
-  const dot = document.getElementById('statusDot');
-  const lbl = document.getElementById('statusLabel');
-  dot.className = 'dot ' + (connected ? 'live' : 'dead');
-  lbl.textContent = connected ? 'Live' : 'Offline';
-}
-
-// ─── Toast ────────────────────────────────────────────────────────────────
-let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────
-populateSettingsUI();
-renderList();
-const s = loadSettings();
-if (s.serverUrl) {
-  connect(s.serverUrl, s.secret);
-} else {
-  // Prompt user to configure
-  setTimeout(() => {
-    document.getElementById('settingsPanel').classList.add('open');
-    showToast('Enter your relay server URL to connect');
-  }, 500);
+function renderRecent() {
+  const el = document.getElementById('recentList');
+  if (!recent.length) { el.innerHTML = '<div class="empty">No calls yet</div>'; return; }
+  el.innerHTML = recent.map(r =>
+    `<div class="number-item" onclick="window.location.href='tel:${r.number}'">
+      ${r.number}
+      <span>${r.label || ''} · ${new Date(r.ts).toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'})}</span>
+    </div>`
+  ).join('');
 }
 
-// Keep time labels fresh
-setInterval(renderList, 30000);
+function setStatus(live) {
+  document.getElementById('dot').className = 'dot ' + (live ? 'live' : 'dead');
+  document.getElementById('statusText').textContent = live ? 'Live — waiting for calls' : 'Connecting...';
+  document.getElementById('recentBox').style.display = live ? '' : 'none';
+}
+
+// Listen to Firebase
+const dialRef = ref(db, 'dial');
+onValue(dialRef, (snapshot) => {
+  setStatus(true);
+  const data = snapshot.val();
+  if (!data || !data.number) return;
+
+  // Only act on new entries
+  if (data.ts > lastTs) {
+    lastTs = data.ts;
+
+    // Add to recent
+    recent.unshift(data);
+    if (recent.length > 10) recent.pop();
+    renderRecent();
+
+    // Dial
+    showToast('Dialing ' + data.number);
+    setTimeout(() => dial(data.number), 300);
+  }
+}, (error) => {
+  setStatus(false);
+  console.error('Firebase error:', error);
+});
+
+setStatus(false);
 </script>
 </body>
 </html>

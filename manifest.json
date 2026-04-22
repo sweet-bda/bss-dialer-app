@@ -2,7 +2,7 @@
   "name": "BSS Dialer",
   "short_name": "BSS Dialer",
   "description": "Real-time click-to-call for Bombay Sweet Shop",
-  "start_url": "/",
+  "start_url": "/bss-dialer-app/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0F6E56",
